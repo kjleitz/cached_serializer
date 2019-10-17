@@ -2,49 +2,6 @@ require "json"
 require_relative "./attr_serializer"
 require_relative "./attr_serializer_collection"
 
-# class UserSerializer < KeegansAmazingSerializer
-#   # This would cache the serialized data in Redis by the User's ID and keys
-#   # based on the attributes specified, so it doesn't have to hit the DB for
-#   # every attribute
-# ​
-#   # The cache of properties specified by `#columns` would be invalidated
-#   # automatically when the model is saved with new values for these properties,
-#   # by checking Rails' built-in `#email_changed?`/`#phone_changed?`/etc. dynamic
-#   # methods on save. Allows you to serialize most simple straight-from-the-DB
-#   # values without any extra effort
-#   columns :email, :phone, :created_at
-# ​
-#   # If you have a "computed" property in the serializer, you could specify
-#   # columns that it depends on, so when any of those columns change it would
-#   # similarly invalidate the cache for this serialized property
-#   computed :first_name, columns: [:first_name, :last_name] do |user|
-#     "#{user.first_name} #{user.last_name}"
-#   end
-# ​
-#   # You could also do it based on an arbitrary lambda returning a boolean,
-#   # although you'd have to keep in mind that it would have to run that lambda
-#   # on every serialization
-#   computed :active_lyft_user, recompute_if: ->(user) { user.lyft? && user.last_logged_in_at > 1.week.ago } do |user|
-#     has_recent_sr = user.service_requests.any? { |sr| sr.created_at > 1.week.ago }
-#     has_recent_booking = user.offers.any? { |offer| offer.accepted_at > 1.week.ago }
-#     has_recent_sr || has_recent_booking
-#   end
-# ​
-#   # You could do it time-based, too, for properties that don't need to be super
-#   # up to date
-#   computed :revenue_generated, expires_in: 1.week do |user|
-#     user.offers.accepted.reduce(0) { |total, offer| total + offer.total_price }
-#   end
-# end
-
-# class User < ActiveRecord::Base
-#   after_commit :update_serializer!, on: :save
-
-#   def update_serializer!
-#     Rails.cache.delete(some_attr_serializer.cache_key(self))
-#   end
-# end
-
 module CachedSerializer
   class Base
     attr_accessor :subject
