@@ -6,11 +6,9 @@ module CachedSerializer
   class Base
     attr_accessor :subject
 
-    @serializers = AttrSerializerCollection.new
-
     class << self
       def serializers
-        @serializers
+        @serializers ||= AttrSerializerCollection.new
       end
 
       # Example (in a UserSerializer):
@@ -121,7 +119,7 @@ module CachedSerializer
       private
 
       def subject_class
-        @subject_class ||= self.class.to_s.gsub(/[Ss]erializer\z/, '').constantize
+        @subject_class ||= self.to_s.gsub(/[Ss]erializer\z/, '').constantize
       end
 
       def add_column_changed_cache_invalidator_callback(attr_name, dependent_attr_name)
@@ -129,10 +127,10 @@ module CachedSerializer
         @already_added_callback[attr_name.to_sym] ||= {}
         return if @already_added_callback[attr_name.to_sym][dependent_attr_name.to_sym]
 
-        subject_class.class_eval do
-          after_commit(on: :save) do
+        subject_class.instance_eval do
+          after_save do
             if changes[dependent_attr_name.to_s]
-              Rails.cache.delete(CachedSerializer::AttrSerializer.cache_key(subject, attr_name))
+              Rails.cache.delete(CachedSerializer::AttrSerializer.cache_key(self, attr_name))
             end
           end
         end

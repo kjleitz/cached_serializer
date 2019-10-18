@@ -8,7 +8,7 @@ module CachedSerializer
       end
     end
 
-    def initialize(attr_name, recompute_ifs = nil, :expires_in = nil, &recompute)
+    def initialize(attr_name, recompute_ifs = nil, expires_in = nil, &recompute)
       self.attr_name = attr_name
       self.recompute_ifs = [recompute_ifs].flatten.compact
       self.expires_in = expires_in
@@ -25,7 +25,7 @@ module CachedSerializer
       should_recompute = recompute_ifs.any? { |recompute_if| recompute_if.call(subject) }
       cache_key = self.class.cache_key(subject, attr_name)
       Rails.cache.fetch(cache_key, expires_in: expires_in, force: should_recompute) do
-        attr_serializer.recompute.call(subject)
+        recompute.call(subject)
       end
     end
   end

@@ -14,7 +14,7 @@ module CachedSerializer
           existing.recompute = attr_serializer.recompute # shadowed attrs override the blocks of previously-declared ones
           existing.expires_in = attr_serializer.expires_in # shadowed attrs override the expires_in of previously-declared ones
         else
-          existing << attr_serializer
+          collection << attr_serializer
         end
       end
     end
