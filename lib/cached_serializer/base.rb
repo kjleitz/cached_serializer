@@ -36,7 +36,7 @@ module CachedSerializer
       # `some_user.phone` for the `:phone` attribute. It will cache the value
       # for each FOREVER, and never recompute it.
       #
-      #   volatile :name do |user|
+      #   constant :name do |user|
       #     "#{user.first_name} #{user.last_name}"
       #   end
       #
@@ -62,7 +62,7 @@ module CachedSerializer
       #   end
       #
       # This will use the result of the block as the value for the `:name`
-      # attribute. It will ALWAYS recompute the values, EVERY time it serializes
+      # attribute. It will ALWAYS recompute the value, EVERY time it serializes
       # a user.
       #
       def volatile(*attr_names, &recompute)
