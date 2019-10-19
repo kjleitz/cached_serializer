@@ -12,7 +12,21 @@ every attribute. This can be desirable when some of the serialized data involves
 long-running queries, relationship-heavy calculations, etc.
 
 ```rb
-class UserSerializer < CachedSerializer::Base
+class Admin::UserSerializer < CachedSerializer::Base
+  # Use the `::subject_class` macro (optional) to specify the class of the model
+  # this serializer will be operating on. By default, it will serialize (and
+  # cache for) the model class named (and nested) the same as the serializer,
+  # short "`Serializer`" at the end of the name. For example, `UserSerializer`
+  # will serialize `User` models by default. `Admin::UserSerializer` will
+  # serialize `Admin::User` models by default.
+  #
+  # If you want to name the serializer something other than "`TheModelName` +
+  # `Serializer`" (e.g., `AuthorSerializer` to serialize `User` records), or to
+  # put it in a module (e.g., `Admin::UserSerializer` to differentiate it from
+  # an existing `UserSerializer`) use `::subject_class` to specify the class of
+  # the subject you will be serializing.
+  subject_class User
+
   # Properties specified by `::columns` are called as-is on the model, and
   # invalidated automatically when the model is saved with new values for these
   # properties, by checking Rails' built-in `#email_changed?`/`#phone_changed?`

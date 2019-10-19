@@ -3,10 +3,48 @@ require_relative "./attr_serializer"
 require_relative "./attr_serializer_collection"
 
 module CachedSerializer
+  class Error < StandardError; end
+
   class Base
     attr_accessor :subject
 
     class << self
+      # Examples:
+      #
+      #   module Admin
+      #     class UserSerializer < CachedSerializer::Base
+      #       subject_class User
+      #
+      #       # ...
+      #     end
+      #   end
+      #
+      #   class AuthorSerializer < CachedSerializer::Base
+      #     subject_class User
+      #
+      #     # ...
+      #   end
+      #
+      # If you want to serialize a model and name the serializer something other
+      # than "`ModelName` + `Serializer`" (e.g., `AuthorSerializer` to serialize
+      # `User` records), or to put it in a module (e.g., `Admin::UserSerializer`
+      # to differentiate it from an existing `UserSerializer`) use
+      # `::subject_class` to specify the class of the model you will be
+      # serializing.
+      def subject_class(subject_class = nil)
+        return @subject_class if @subject_class && !subject_class
+
+        subject_class_name = case subject_class.class.to_s
+        when 'Class' then subject_class.to_s
+        when 'String' then subject_class.classify
+        else self.to_s.gsub(/[Ss]erializer\z/, '')
+        end
+
+        @subject_class = subject_class_name.constantize
+      rescue NameError
+        raise CachedSerializer::Error, "Cannot find a #{subject_class_name} model class for serialization (use the `subject_class TheModelName` in #{self.to_s} to specify which model to serialize)"
+      end
+
       def serializers
         @serializers ||= AttrSerializerCollection.new
       end
@@ -118,10 +156,6 @@ module CachedSerializer
 
       private
 
-      def subject_class
-        @subject_class ||= self.to_s.gsub(/[Ss]erializer\z/, '').constantize
-      end
-
       def add_column_changed_cache_invalidator_callback(attr_name, dependent_attr_name)
         @already_added_callback ||= {}
         @already_added_callback[attr_name.to_sym] ||= {}
@@ -140,6 +174,10 @@ module CachedSerializer
     end
 
     def initialize(subject)
+      unless subject.is_a?(self.class.subject_class)
+        raise CachedSerializer::Error, "Subject is not a #{self.class.subject_class} (use `subject_class #{subject.class}` in your serializer to serialize #{subject.class} records)"
+      end
+
       self.subject = subject
     end
 
